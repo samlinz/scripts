@@ -6,7 +6,7 @@ import subprocess, re
 
 commands = {
     "get_sinks": ["pacmd", "list-sinks"],
-    "change_sink": ["changesink.sh"]
+    "change_sink": ["./changesink.sh"]
 }
 
 regex = {
