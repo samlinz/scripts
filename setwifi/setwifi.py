@@ -68,7 +68,6 @@ if __name__ == "__main__":
     print("Connecting to ESSID {}".format(ssid))
 
     pwd = input("If the AP needs a password, input it now or press return: ")
-    pwd = ""
 
     if len(pwd) > 0:
         output_conn = run("sudo", "iwconfig", wif, "essid", ssid, "key", pwd)
