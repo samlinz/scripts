@@ -2,11 +2,13 @@
 # 26.02.2018 Samuel Lindqvist
 # Lists pulseaudio sinks and allows the user to change default sink and move sources on the fly
 
-import subprocess, re
+import subprocess, re, os
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 commands = {
     "get_sinks": ["pacmd", "list-sinks"],
-    "change_sink": ["./changesink.sh"]
+    "change_sink": ["{}/changesink.sh".format(dir_path)]
 }
 
 regex = {
