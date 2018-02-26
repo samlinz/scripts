@@ -77,6 +77,7 @@ if __name__ == "__main__":
     
     output_dhcp = run("sudo", "dhclient", wif)
 
+    # Confirm that we have an ip address
     output_ifconfig = run("ifconfig")
     inet = re.findall(regex_inet.replace("WIF", wif), output_ifconfig, re.M)
 
@@ -84,6 +85,5 @@ if __name__ == "__main__":
         exit("Failed to connect and/or fetch IP address")
         #TODO: IPv6 doesn't work
     
-    print("Your ip address is {}".format(inet[0])
-
+    print("Your ip address is {}".format(inet[0]))
     print("Done")
