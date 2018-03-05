@@ -5,32 +5,31 @@
 # Use of `streamlink` from pip is recommended
 
 from __future__ import print_function
-import requests, json, sys, subprocess
+import requests, json, sys, subprocess, os
 from multiprocessing import Pool
 from pathlib import Path
 from datetime import datetime
 from cursesmenu import *
 from cursesmenu.items import *
 
+APP_NAME = "TwitchClient"
+
+# Terminal colors
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+print(bcolors.OKGREEN + "Welcome to {}".format(APP_NAME) + bcolors.ENDC)
 
 # Print to stderr
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
-
-
-# Run arbitrary UNIX command
-def run(command, *arguments):
-    comm = list()
-    comm.append(str(command))
-    comm.extend(arguments)
-    try:
-        proc = subprocess.Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except FileNotFoundError:
-        exit("Command {} not found".format(command))
-    data, err = proc.communicate()
-    if err is None or len(err) > 0:
-        raise Exception("Command failed with {}".format(err.decode("ascii")))
-    return data.decode("ascii")
 
 
 CONFIG_LOCATIONS = [
@@ -62,6 +61,8 @@ if (CLIENT_ID is None):
     exit()
 API_BASE_ADDRESS = "https://api.twitch.tv/kraken/streams/{}"
 STREAM_BASE_ADDRESS = "https://www.twitch.tv/{}"
+QUALITIES = ["best", "160p", "360p", "480p", "720p"]
+
 
 if (len(STREAMS) == 0):
     eprint("No streams listed")
@@ -88,13 +89,11 @@ def _get_stream_objects(channel_names):
     return responses
 
 
-def _notify_if_online(stream_statuses):
-    global COMMAND_NOTIFY
-
-
-def _open_stream(url):
-    global COMMAND_STREAM
-    status = run(COMMAND_STREAM.replace("$url", url))
+def _open_stream(url, quality_submenu):
+    selection = quality_submenu.get_return()
+    quality = QUALITIES[selection if selection is not None else 0]
+    full_command = COMMAND_STREAM.replace("$url", url).replace("$quality", quality)
+    os.system(full_command)
     exit()
 
 
@@ -102,6 +101,8 @@ if __name__ == "__main__":
     online_streamers = []
     online_objs = []
     offline_streamers = []
+
+    print("Polling {} streams...".format(len(STREAMS)))
 
     responses = _get_stream_objects(STREAMS)
     for stream_status in responses:
@@ -126,18 +127,25 @@ if __name__ == "__main__":
         })
     offline_streamers = [n for n in STREAMS if n.lower() not in online_streamers]
 
+    print("Done. Online {}, offline {}".format(len(online_streamers), len(offline_streamers)))
+
     # Create Curses menu
     menu = CursesMenu("Open stream", "Select online streamer")
+
+    quality_menu = SelectionMenu(QUALITIES)
+    quality_submenu = SubmenuItem("Select stream quality", quality_menu, menu)
+
+    menu.append_item(quality_submenu)
+
     i = 0
     for online in online_streamers:
         stream_url = STREAM_BASE_ADDRESS.format(online)
         # Open stream with streamlink
-        item = CommandItem("{} - {} - {}".format(online, online_objs[i]["game"], online_objs[i]["title"]), COMMAND_STREAM.replace("$url", stream_url))
+        item = FunctionItem(
+            "{} - {} - {}".format(online, online_objs[i]["game"], online_objs[i]["title"]), _open_stream, [stream_url, quality_submenu])
         menu.append_item(item)
         i += 1
 
-    for offline in offline_streamers:
-        item = MenuItem("{} - OFFLINE".format(offline))
-        menu.append_item(item)
+    menu.append_item(MenuItem("Offline streamers: {}".format(len(offline_streamers))))
 
     menu.show()
