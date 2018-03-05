@@ -37,10 +37,12 @@ sink_names = re.findall(regex["get_sink_names"], output, re.I)
 if sink_names is None:
     exit("Failed to parse sink names")
 
+indexes = dict()
 # Iterate sink ids and names
 for i in range(len(sink_names)):
-    index = sink_names[i][0]
+    index = int(sink_names[i][0])
     name = sink_names[i][1]
+    indexes[index] = name
     print("Index {}, name {}".format(index, name))
 
 while True:
@@ -52,12 +54,12 @@ while True:
     except Exception:
         print("Invalid input")
         continue
-    if selected < 0 or selected >= len(sink_names):
+    if selected not in indexes:
         print("Invalid choice")
         continue
     break
 
-print("Changing the sink to {}".format(sink_names[selected][1]))
+print("Changing the sink to {}".format(indexes[selected]))
 
 input = commands["change_sink"]
 input.append(str(selected))
