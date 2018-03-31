@@ -55,7 +55,7 @@ LANGUAGES = {
 URL = "http://www.sanakirja.org/search.php?q=@Word&l=@Lang1&l2=@Lang2"
 
 
-# Return True if argument is present in short or long form
+# Return argument position or -1 if not found
 def __get_argument_pos(arguments, short, long):
     for ind, argument in enumerate(arguments):
         argument = str(argument)
@@ -69,6 +69,7 @@ def __get_argument_pos(arguments, short, long):
             return ind
     return -1
 
+# Return True if argument present in short or long form
 def __get_argument(arguments, short, long):
     return __get_argument_pos(arguments, short, long) >= 0
 
@@ -97,7 +98,7 @@ if __name__ == "__main__":
         except Exception:
             __pexit("Limit is missing")
 
-    if PARAM_HELP:
+    if (PARAM_HELP or len(args) == 0):
         __pexit(HELP)
 
     if PARAM_LANGUAGES:
